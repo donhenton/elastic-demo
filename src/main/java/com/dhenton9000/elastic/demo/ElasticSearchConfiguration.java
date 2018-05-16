@@ -15,11 +15,17 @@ public class ElasticSearchConfiguration extends AbstractFactoryBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchConfiguration.class);
 
-    @Value("${spring.data.elasticsearch.cluster-nodes}")
-    private String clusterNodes;
-    @Value("${spring.data.elasticsearch.cluster-name}")
-    private String clusterName;
+    // only needed for spring data
+    // @Value("${spring.data.elasticsearch.cluster-nodes}")
+    // private String clusterNodes;
+    // @Value("${spring.data.elasticsearch.cluster-name}")
+    // private String clusterName;
     private RestHighLevelClient restHighLevelClient;
+
+    @Value("${es.host}")
+    private String esHost;
+    @Value("${es.port}")
+    private int esPort;
 
     @Override
     public void destroy() {
@@ -58,7 +64,7 @@ public class ElasticSearchConfiguration extends AbstractFactoryBean {
 
     private RestClientBuilder createClient() {
         return RestClient.builder(
-                new HttpHost("localhost", 9200, "http"));
+                new HttpHost(esHost, esPort, "http"));
     }
 
 }
