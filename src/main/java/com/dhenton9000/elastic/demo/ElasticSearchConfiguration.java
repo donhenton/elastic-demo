@@ -1,5 +1,6 @@
 package com.dhenton9000.elastic.demo;
 
+import java.io.IOException;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -33,7 +34,7 @@ public class ElasticSearchConfiguration extends AbstractFactoryBean {
             if (restHighLevelClient != null) {
                 restHighLevelClient.close();
             }
-        } catch (final Exception e) {
+        } catch (final IOException e) {
             LOG.error("Error closing ElasticSearch client: ", e);
         }
     }
