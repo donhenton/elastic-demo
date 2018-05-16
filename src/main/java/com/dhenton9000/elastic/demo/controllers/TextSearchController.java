@@ -30,7 +30,7 @@ public class TextSearchController {
 
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/search", produces = "application/json")
+    @RequestMapping(method = RequestMethod.GET, path = "/text-search", produces = "application/json")
     @ApiOperation(value = "Search for text", notes = "fuzz freeform search")
     public List<Map<String, Object>> doQuery(@RequestParam(value = "text") String textToSearch) {
        
