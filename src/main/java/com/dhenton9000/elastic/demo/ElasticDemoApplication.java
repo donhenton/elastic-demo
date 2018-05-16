@@ -1,7 +1,5 @@
 package com.dhenton9000.elastic.demo;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -11,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
 import static springfox.documentation.builders.PathSelectors.regex;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -46,7 +43,8 @@ public class ElasticDemoApplication {
     public WebMvcConfigurer corsConfigurer() {
         return new WebConfigurator() ;
     }
-    //http://www.baeldung.com/swagger-2-documentation-for-spring-rest-api
+   
+    
     @Bean
     public Docket searchApi() {
         return new Docket(DocumentationType.SWAGGER_2)
