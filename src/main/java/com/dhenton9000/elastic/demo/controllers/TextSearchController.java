@@ -1,5 +1,6 @@
 package com.dhenton9000.elastic.demo.controllers;
 
+import com.dhenton9000.elastic.demo.model.BookResults;
 import com.dhenton9000.elastic.demo.services.BookService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -31,9 +32,17 @@ public class TextSearchController {
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/text-search", produces = "application/json")
-    @ApiOperation(value = "Search for text", notes = "fuzz freeform search")
+    @ApiOperation(value = "Search for text by fuzzy query", notes = "fuzzy freeform search")
     public List<Map<String, Object>> doQuery(@RequestParam(value = "text") String textToSearch) {
        
         return bookService.searchForText(textToSearch);
     }
+    
+    @RequestMapping(method = RequestMethod.GET, path = "/author", produces = "application/json")
+    @ApiOperation(value = "Search for text author", notes = "text by author")
+    public BookResults searchByAuthor(@RequestParam(value = "authorName") String authorName) {
+        LOG.info("author name "+authorName);
+        return bookService.searchForAuthor(authorName);
+    }
+    
 }

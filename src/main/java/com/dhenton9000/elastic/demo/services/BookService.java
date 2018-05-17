@@ -5,6 +5,7 @@
  */
 package com.dhenton9000.elastic.demo.services;
 
+import com.dhenton9000.elastic.demo.model.BookResults;
 import java.util.List;
 import java.util.Map;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -18,9 +19,10 @@ public interface BookService {
     public static final String INDEX = "library";
     public final String TYPE = "book";
     public final String TEXT_FIELDNAME = "text";
+    public final String AUTHOR_FIELDNAME = "author";
 
     Map<String, Object> getById(String id);
-    
     List<Map<String, Object>> searchForText(String text);
+    BookResults searchForAuthor(String authorName);
 
 }

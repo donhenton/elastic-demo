@@ -1,5 +1,6 @@
 package com.dhenton9000.elastic.demo.services;
 
+import com.dhenton9000.elastic.demo.model.BookResults;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,28 +54,55 @@ public class BookServiceImpl implements BookService {
         List<Map<String, Object>> sourceList = new ArrayList<>();
         SearchRequest searchRequest = new SearchRequest(INDEX);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
         QueryBuilder qBuilder = QueryBuilders.fuzzyQuery(TEXT_FIELDNAME,
                 text);
-                //.boost(1.0f).prefixLength(0)
-               // .fuzziness(Fuzziness.ONE)
-               //transpositions(true);
-        
-        searchSourceBuilder.query(qBuilder) ;
-        
-         searchRequest.source(searchSourceBuilder);
-         
-        
+        //.boost(1.0f).prefixLength(0)
+        // .fuzziness(Fuzziness.ONE)
+        //transpositions(true);
+
+        searchSourceBuilder.query(qBuilder);
+
+        searchRequest.source(searchSourceBuilder);
+
         try {
-             Header h = new BasicHeader("request","alpha");
-             SearchResponse res = this.client.search(searchRequest,h);
-             Arrays.asList(res.getHits().getHits()).forEach((SearchHit hit) -> {
-              sourceList.add(hit.getSourceAsMap());
-             });
-            
+            Header h = new BasicHeader("request", "alpha");
+            SearchResponse res = this.client.search(searchRequest, h);
+            Arrays.asList(res.getHits().getHits()).forEach((SearchHit hit) -> {
+                sourceList.add(hit.getSourceAsMap());
+            });
+
         } catch (Exception ex) {
-           LOG.error("io exception for search "+ex.getMessage());
+            LOG.error("io exception for search " + ex.getMessage());
         }
         return sourceList;
+    }
+
+    @Override
+    public BookResults searchForAuthor(String authorName) {
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(QueryBuilders.matchQuery("author", authorName));
+        sourceBuilder.from(0);
+        sourceBuilder.size(5);
+        SearchRequest searchRequest = new SearchRequest(INDEX);
+        searchRequest.source(sourceBuilder);
+        BookResults results = new BookResults();
+        results.setCount(300);
+        Header h = new BasicHeader("request", "alpha");
+        try {
+
+            SearchResponse res = this.client.search(searchRequest, h);
+            Arrays.asList(res.getHits().getHits()).forEach((SearchHit hit) -> {
+                results.getResults().add(hit.getSourceAsMap());
+            });
+
+        } catch (Exception ex) {
+            LOG.error("io exception for search " + ex.getMessage());
+        }
+
+        return results;
+
     }
 
 }
