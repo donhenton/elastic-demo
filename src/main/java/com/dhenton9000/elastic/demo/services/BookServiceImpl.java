@@ -17,6 +17,7 @@ import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,21 +80,24 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResults searchForAuthor(String authorName) {
+    public BookResults searchForAuthor(String authorName, int pageOffset) {
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(QueryBuilders.matchQuery("author", authorName));
-        sourceBuilder.from(0);
-        sourceBuilder.size(5);
+        sourceBuilder.query(QueryBuilders.matchQuery(AUTHOR_FIELDNAME, authorName));
+        
+        sourceBuilder.from(DEFAULT_PAGE_COUNT*pageOffset);
+        sourceBuilder.size(DEFAULT_PAGE_COUNT);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         searchRequest.source(sourceBuilder);
         BookResults results = new BookResults();
-        results.setCount(300);
+        results.setPageOffset(pageOffset);
         Header h = new BasicHeader("request", "alpha");
         try {
-
+            
             SearchResponse res = this.client.search(searchRequest, h);
-            Arrays.asList(res.getHits().getHits()).forEach((SearchHit hit) -> {
+            SearchHits searchHits = res.getHits();
+             results.setTotalCount(searchHits.getTotalHits());
+            Arrays.asList(searchHits.getHits()).forEach((SearchHit hit) -> {
                 results.getResults().add(hit.getSourceAsMap());
             });
 

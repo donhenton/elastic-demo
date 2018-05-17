@@ -19,10 +19,12 @@ public interface BookService {
     public static final String INDEX = "library";
     public final String TYPE = "book";
     public final String TEXT_FIELDNAME = "text";
-    public final String AUTHOR_FIELDNAME = "author";
+    public final String AUTHOR_FIELDNAME = "author_text";
+    public final String AUTHOR_KEYWORD = "author";
+    public static final int DEFAULT_PAGE_COUNT = 15;
 
     Map<String, Object> getById(String id);
     List<Map<String, Object>> searchForText(String text);
-    BookResults searchForAuthor(String authorName);
+    BookResults searchForAuthor(String authorName,int pageOffset);
 
 }

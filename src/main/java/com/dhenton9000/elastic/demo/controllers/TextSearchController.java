@@ -40,9 +40,11 @@ public class TextSearchController {
     
     @RequestMapping(method = RequestMethod.GET, path = "/author", produces = "application/json")
     @ApiOperation(value = "Search for text author", notes = "text by author")
-    public BookResults searchByAuthor(@RequestParam(value = "authorName") String authorName) {
+    public BookResults searchByAuthor(
+            @RequestParam(value = "authorName") String authorName ,
+            @RequestParam(value = "pageOffset") int offset) {
         LOG.info("author name "+authorName);
-        return bookService.searchForAuthor(authorName);
+        return bookService.searchForAuthor(authorName,offset);
     }
     
 }

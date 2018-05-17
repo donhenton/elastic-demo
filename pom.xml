@@ -77,7 +77,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- if devtools reloadst stops working try removing and adding this entry -->
+        <!-- if devtools reload    stops working fiddling with this string -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
