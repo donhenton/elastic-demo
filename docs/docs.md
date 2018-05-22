@@ -16,3 +16,6 @@ https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest
 search api
 https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high-supported-apis.html
 https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-match-query.html
+
+
+https://dzone.com/articles/23-useful-elasticsearch-example-queries

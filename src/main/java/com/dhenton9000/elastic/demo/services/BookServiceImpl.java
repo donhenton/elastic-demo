@@ -67,7 +67,7 @@ public class BookServiceImpl implements BookService {
         searchRequest.source(searchSourceBuilder);
 
         try {
-            Header h = new BasicHeader("request", "alpha");
+            Header h = createHeader();
             SearchResponse res = this.client.search(searchRequest, h);
             Arrays.asList(res.getHits().getHits()).forEach((SearchHit hit) -> {
                 sourceList.add(hit.getSourceAsMap());
@@ -84,19 +84,19 @@ public class BookServiceImpl implements BookService {
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.query(QueryBuilders.matchQuery(AUTHOR_FIELDNAME, authorName));
-        
-        sourceBuilder.from(DEFAULT_PAGE_COUNT*pageOffset);
+
+        sourceBuilder.from(DEFAULT_PAGE_COUNT * pageOffset);
         sourceBuilder.size(DEFAULT_PAGE_COUNT);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         searchRequest.source(sourceBuilder);
         BookResults results = new BookResults();
         results.setPageOffset(pageOffset);
-        Header h = new BasicHeader("request", "alpha");
+        Header h = createHeader();
         try {
-            
+
             SearchResponse res = this.client.search(searchRequest, h);
             SearchHits searchHits = res.getHits();
-             results.setTotalCount(searchHits.getTotalHits());
+            results.setTotalCount(searchHits.getTotalHits());
             Arrays.asList(searchHits.getHits()).forEach((SearchHit hit) -> {
                 results.getResults().add(hit.getSourceAsMap());
             });
@@ -106,6 +106,44 @@ public class BookServiceImpl implements BookService {
         }
 
         return results;
+
+    }
+
+    private Header createHeader() {
+        Header h = new BasicHeader("request", "alpha");
+        return h;
+    }
+
+    @Override
+    public List<Map<String, Object>> getCatalogEntriesByTitle(String titleRegex) {
+        return getCatalogEntries(titleRegex, CATALOG_AUTHORFIELD);
+    }
+
+    @Override
+    public List<Map<String, Object>> getCatalogEntriesByAuthor(String authorRegex) {
+        return getCatalogEntries(authorRegex, CATALOG_TITLEFIELD);
+    }
+
+    private List<Map<String, Object>> getCatalogEntries(String regex, String searchType) {
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(QueryBuilders.matchQuery(searchType, regex));
+        List<Map<String, Object>> sourceList = new ArrayList<>();
+        sourceBuilder.from(0);
+        sourceBuilder.size(DEFAULT_PAGE_COUNT);
+        SearchRequest searchRequest = new SearchRequest(CARD_CATALOG);
+        Header h = createHeader();
+        try {
+
+            SearchResponse res = this.client.search(searchRequest, h);
+            Arrays.asList(res.getHits().getHits()).forEach((SearchHit hit) -> {
+                sourceList.add(hit.getSourceAsMap());
+            });
+
+        } catch (Exception ex) {
+            LOG.error("io exception for search " + ex.getMessage());
+        }
+        return sourceList;
 
     }
 

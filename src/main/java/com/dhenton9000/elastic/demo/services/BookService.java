@@ -17,14 +17,18 @@ import org.elasticsearch.client.RestHighLevelClient;
 public interface BookService {
 
     public static final String INDEX = "library";
-    public final String TYPE = "book";
-    public final String TEXT_FIELDNAME = "text";
-    public final String AUTHOR_FIELDNAME = "author_text";
-    public final String AUTHOR_KEYWORD = "author";
+    public static final String CARD_CATALOG = "card_catalog";
+    public static final  String TYPE = "book";
+    public static final String TEXT_FIELDNAME = "text";
+    public static final String AUTHOR_FIELDNAME = "author_text";
+    public static final String AUTHOR_KEYWORD = "author";
     public static final int DEFAULT_PAGE_COUNT = 15;
+    public static final String CATALOG_TITLEFIELD = "title";
+    public static final String CATALOG_AUTHORFIELD = "author_text";
 
     Map<String, Object> getById(String id);
     List<Map<String, Object>> searchForText(String text);
     BookResults searchForAuthor(String authorName,int pageOffset);
-
+    List<Map<String, Object>> getCatalogEntriesByTitle(String titleRegex);
+    List<Map<String, Object>> getCatalogEntriesByAuthor(String authorRegex);
 }

@@ -34,17 +34,26 @@ public class TextSearchController {
     @RequestMapping(method = RequestMethod.GET, path = "/text-search", produces = "application/json")
     @ApiOperation(value = "Search for text by fuzzy query", notes = "fuzzy freeform search")
     public List<Map<String, Object>> doQuery(@RequestParam(value = "text") String textToSearch) {
-       
+
         return bookService.searchForText(textToSearch);
     }
-    
+
     @RequestMapping(method = RequestMethod.GET, path = "/author", produces = "application/json")
     @ApiOperation(value = "Search for text author", notes = "text by author")
     public BookResults searchByAuthor(
-            @RequestParam(value = "authorName") String authorName ,
+            @RequestParam(value = "authorName") String authorName,
             @RequestParam(value = "pageOffset") int offset) {
-        LOG.info("author name "+authorName);
-        return bookService.searchForAuthor(authorName,offset);
+        LOG.info("author name " + authorName);
+        return bookService.searchForAuthor(authorName, offset);
     }
-    
+
+    //List<Map<String, Object>> getCatalogEntriesByTitle(String titleRegex);
+    @RequestMapping(method = RequestMethod.GET, path = "/catalog/author", produces = "application/json")
+    @ApiOperation(value = "Search for text author", notes = "text by author")
+    public List<Map<String, Object>> getCatalogEntriesByAuthor(
+            @RequestParam(value = "authorRegex") String authorRegex) {
+
+        return bookService.getCatalogEntriesByAuthor(authorRegex);
+    }
+
 }
