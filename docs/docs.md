@@ -19,3 +19,9 @@ https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl-match-quer
 
 
 https://dzone.com/articles/23-useful-elasticsearch-example-queries
+
+
+auto complete
+
+https://hackernoon.com/elasticsearch-building-autocomplete-functionality-494fcf81a7cf
+https://hackernoon.com/elasticsearch-using-completion-suggester-to-build-autocomplete-e9c120cf6d87
