@@ -19,16 +19,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
- 
 
 @Service
 public class GithubSearchServiceImpl implements GithubSearchService {
 
     @Autowired
     RestHighLevelClient client;
-    
+
     public GithubSearchServiceImpl() {
-       
+
     }
 
     private static final Logger LOG
@@ -36,42 +35,42 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     @Override
     public Map<String, Object> getUniqueTopicsAndLanguages() {
-        
-        Map<String,Object> resObjs = new HashMap<String,Object>();
+
+        Map<String, Object> resObjs = new HashMap<String, Object>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-       
+
         sourceBuilder.aggregation(AggregationBuilders.terms("unique_topics").field("topics.keyword").size(20).minDocCount(0));
         sourceBuilder.aggregation(AggregationBuilders.terms("unique_lang").field("language.keyword").size(20).minDocCount(0));
         SearchRequest searchRequest = new SearchRequest(INDEX);
-       
+
         searchRequest.source(sourceBuilder);
-        LOG.debug(sourceBuilder.toString());
         Header h = createHeader();
         try {
 
             SearchResponse res = this.client.search(searchRequest, h);
             res.getAggregations().asList().forEach((Aggregation agg) -> {
-            Terms termData = res.getAggregations().get(agg.getName());
-                List<Map<String,Object>> items = new ArrayList<>();
+                Terms termData = res.getAggregations().get(agg.getName());
+                List<Map<String, Object>> items = new ArrayList<>();
                 termData.getBuckets().forEach(b -> {
-                     Map<String,Object> countPair = new HashMap<>();
-                     countPair.put(b.getKeyAsString(), b.getDocCount());
-                     items.add(countPair);
-                
+                    Map<String, Object> countPair = new HashMap<>();
+                    
+                    String key = b.getKeyAsString();
+                    if (key == null || key.isEmpty()) {
+                        key = "UNDEF";
+                    }
+                    
+                    countPair.put("key",key);
+                    countPair.put("docCount", b.getDocCount());
+                    items.add(countPair);
+
                 });
-                
-                
-                
-                resObjs.put(agg.getName(),items);
-            
-          //  LOG.debug("putting "+agg.getName()+" "+termData.getBuckets());
-                 
-                
-            
+
+                resObjs.put(agg.getName(), items);
+
+                //  LOG.debug("putting "+agg.getName()+" "+termData.getBuckets());
             });
-           
-            
-          return resObjs;
+
+            return resObjs;
 
         } catch (Exception ex) {
             LOG.error("io exception for search " + ex.getMessage());
