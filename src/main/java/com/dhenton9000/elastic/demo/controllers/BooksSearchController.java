@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/search")
-public class TextSearchController {
+@RequestMapping("/books/search")
+public class BooksSearchController {
 
     @Autowired
     private BookService bookService;
 
-    private static final Logger LOG = LoggerFactory.getLogger(TextSearchController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BooksSearchController.class);
 
     @RequestMapping(method = RequestMethod.GET, path = "/sample/{id}", produces = "application/json")
     @ApiOperation(value = "Get book by id", notes = "sample id AWNkBghhQVS53BGBIBHJ")

@@ -31,7 +31,6 @@ public class ElasticDemoApplication {
         });
     }
 
-    
     // boot 2.0 migration guide 
     // https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide
     /*
@@ -41,26 +40,42 @@ public class ElasticDemoApplication {
      */
     @Bean
     public WebMvcConfigurer corsConfigurer() {
-        return new WebConfigurator() ;
+        return new WebConfigurator();
     }
-   
-    
+
     @Bean
-    public Docket searchApi() {
+    public Docket bookSearchApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-                //.groupName("search")
+                .groupName("books")
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.any())   
+                .apis(RequestHandlerSelectors.any())
                 //.paths(paths())
-                .paths(regex("/search/.*"))
+                .paths(regex("/books/search/.*"))
                 .build();
     }
 
-    
-    
-    //.paths(regex("/birt/.*"))
-    
+    @Bean
+    public Docket githubApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("github")
+                .apiInfo(githubInfo())
+                .select()
+                .paths(regex("/github/search/.*"))
+                .build();
+    }
+
+    private ApiInfo githubInfo() {
+        Contact c = new Contact("Don Henton", "http://donhenton.com", null);
+        return new ApiInfoBuilder()
+                .title("GitHub Search")
+                .description("Github Search")
+                .contact(c)
+                .license("Apache License Version 2.0")
+                .version("1.0")
+                .build();
+    }
+
     private ApiInfo apiInfo() {
         Contact c = new Contact("Don Henton", "http://donhenton.com", null);
         return new ApiInfoBuilder()
