@@ -102,7 +102,11 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     }
 
- 
+    public GithubResultsPage getEntriesByAllTopics(List<String> topics, int pageOffset) {
+        List<GithubEntry> results = new ArrayList<>();
+        return this.setupPage(results, pageOffset);
+    }
+
     @Override
     public GithubResultsPage getEntriesByTopics(List<String> topics, int pageOffset) {
         List<GithubEntry> results = new ArrayList<>();
@@ -139,13 +143,13 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     /**
      * setup a page to handle pagination
-     * 
+     *
      * @param results
      * @param pageOffset
-     * @return 
+     * @return
      */
-    private GithubResultsPage setupPage(List<GithubEntry> results,int pageOffset) {
-        
+    private GithubResultsPage setupPage(List<GithubEntry> results, int pageOffset) {
+
         GithubResultsPage page = new GithubResultsPage();
         page.setResults(results);
         page.setPerPageCount(RESULTS_COUNT);

@@ -20,7 +20,7 @@ public interface GithubSearchService {
 
     public Map<String,List<Map<String, String>>> getUniqueTopicsAndLanguages();
     public GithubResultsPage getEntriesByTopics(List<String> topics,int pageOffset);
-    
+    public GithubResultsPage getEntriesByAllTopics(List<String> topics,int pageOffset);
     
     
     
