@@ -5,6 +5,7 @@ import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -57,7 +59,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     @Override
     public Map<String, List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
-        LOG.debug("template " + restTemplate + " " + this.elasticSearchEndpoint);
+        // LOG.debug("template " + restTemplate + " " + this.elasticSearchEndpoint);
         Map<String, List<Map<String, String>>> returnedResults = new HashMap<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
@@ -118,6 +120,36 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     }
 
+    public GithubResultsPage getEntriesByDate(LocalDate start, LocalDate end, int pageOffset) {
+        List<GithubEntry> results = new ArrayList<>();
+        GithubResultsPage page = setupPage(results, pageOffset);
+        SearchSourceBuilder sourceBuilder = setupBuilder(pageOffset);
+
+        RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(end).gte(start);
+        sourceBuilder.query(query);
+        SearchRequest searchRequest = new SearchRequest(INDEX);
+        // LOG.debug(sourceBuilder.toString());
+        searchRequest.source(sourceBuilder);
+        loadResults(searchRequest, page, results);
+        return page;
+    }
+
+    private void loadResults(SearchRequest searchRequest, GithubResultsPage page, List<GithubEntry> results) {
+        try {
+
+            SearchResponse res = this.client.search(searchRequest);
+            SearchHits searchHits = res.getHits();
+            page.setTotalCount(searchHits.getTotalHits());
+            Arrays.asList(searchHits.getHits()).forEach((SearchHit hit) -> {
+                GithubEntry g = GithubEntry.createEntry(hit.getSourceAsMap());
+                results.add(g);
+            });
+
+        } catch (IOException ex) {
+            LOG.error("io exception for search " + ex.getMessage());
+        }
+    }
+
     @Override
     public GithubResultsPage getEntriesByAllTopics(List<String> topics, int pageOffset) {
         List<GithubEntry> results = new ArrayList<>();
@@ -136,13 +168,13 @@ public class GithubSearchServiceImpl implements GithubSearchService {
             b.append("\"");
             b.append(",");
         });
-        
+
         String listing = b.toString();
-        listing = listing.substring(0,listing.length()-1);
+        listing = listing.substring(0, listing.length() - 1);
         listing = listing + "]";
-        
-        requestJSON = String.format(requestJSON,RESULTS_COUNT * pageOffset,RESULTS_COUNT,listing);
-     //   LOG.debug(requestJSON);
+
+        requestJSON = String.format(requestJSON, RESULTS_COUNT * pageOffset, RESULTS_COUNT, listing);
+        //   LOG.debug(requestJSON);
         HttpEntity<String> entity = new HttpEntity<>(requestJSON, headers);
 
         ResponseEntity<HashMap> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
@@ -177,21 +209,9 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         TermsQueryBuilder query = QueryBuilders.termsQuery("topics", topics);
         sourceBuilder.query(query);
         SearchRequest searchRequest = new SearchRequest(INDEX);
-       // LOG.debug(sourceBuilder.toString());
+        // LOG.debug(sourceBuilder.toString());
         searchRequest.source(sourceBuilder);
-        try {
-
-            SearchResponse res = this.client.search(searchRequest);
-            SearchHits searchHits = res.getHits();
-            page.setTotalCount(searchHits.getTotalHits());
-            Arrays.asList(searchHits.getHits()).forEach((SearchHit hit) -> {
-                GithubEntry g = GithubEntry.createEntry(hit.getSourceAsMap());
-                results.add(g);
-            });
-
-        } catch (IOException ex) {
-            LOG.error("io exception for search " + ex.getMessage());
-        }
+        loadResults(searchRequest, page, results);
 
         return page;
     }
