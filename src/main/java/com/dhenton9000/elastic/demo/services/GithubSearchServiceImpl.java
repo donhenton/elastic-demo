@@ -140,27 +140,33 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         String listing = b.toString();
         listing = listing.substring(0,listing.length()-1);
         listing = listing + "]";
-      //  RESULTS_COUNT * pageOffset
         
         requestJSON = String.format(requestJSON,RESULTS_COUNT * pageOffset,RESULTS_COUNT,listing);
-        LOG.debug(requestJSON);
+     //   LOG.debug(requestJSON);
         HttpEntity<String> entity = new HttpEntity<>(requestJSON, headers);
 
         ResponseEntity<HashMap> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
 
-        HashMap topMap = response.getBody();
-        Map hitsMap = (Map) topMap.get("hits");
-        Integer total = (Integer) hitsMap.get("total");
-        List<Map<String, Object>> hitList = (List<Map<String, Object>>) hitsMap.get("hits");
-
-        hitList.forEach(objMap -> {
-            Map<String, Object> sourceData = (Map<String, Object>) objMap.get("_source");
-            results.add(GithubEntry.createEntry(sourceData));
-        });
+        Integer total = buildHitsFromResponse(response, results);
         page.setResults(results);
         page.setTotalCount(total);
 
         return page;
+    }
+
+    private Integer buildHitsFromResponse(ResponseEntity<HashMap> response, List<GithubEntry> results) {
+        HashMap topMap = response.getBody();
+        if (topMap == null) {
+            return 0;
+        }
+        Map hitsMap = (Map) topMap.get("hits");
+        Integer total = (Integer) hitsMap.get("total");
+        List<Map<String, Object>> hitList = (List<Map<String, Object>>) hitsMap.get("hits");
+        hitList.forEach(objMap -> {
+            Map<String, Object> sourceData = (Map<String, Object>) objMap.get("_source");
+            results.add(GithubEntry.createEntry(sourceData));
+        });
+        return total;
     }
 
     @Override
