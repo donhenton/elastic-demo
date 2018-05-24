@@ -46,7 +46,7 @@ public class GithubSearchController {
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/entries/all/topics", produces = "application/json")
-    @ApiOperation(value = "Get Entries by Topics", notes = "send in string delimited list topics must match all entries")
+    @ApiOperation(value = "Get Entries by All Topics", notes = "send in string delimited list topics must match all entries")
 
     public GithubResultsPage getEntriesByAllTopics(
             @RequestParam List<String> topics,

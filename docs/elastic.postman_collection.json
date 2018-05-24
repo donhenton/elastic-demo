@@ -1,0 +1,626 @@
+{
+	"info": {
+		"_postman_id": "6670bdba-9e90-4482-bd3c-1b0cb921fe3c",
+		"name": "elastic",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "meta",
+			"description": "",
+			"item": [
+				{
+					"name": "github mappings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "",
+								"disabled": true
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:9200/github/_mappings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_mappings"
+							]
+						},
+						"description": "get the mappings for an endpoint, mappings are the schema of the data. The url field uses a custom path analyzer. Its definition can be see with the _settings call"
+					},
+					"response": []
+				},
+				{
+					"name": "library mappings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "",
+								"disabled": true
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:9200/library/_mappings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"library",
+								"_mappings"
+							]
+						},
+						"description": "get the mappings for an endpoint, mappings are the schema of the data. The url field uses a custom path analyzer. Its definition can be see with the _settings call"
+					},
+					"response": []
+				},
+				{
+					"name": "settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "",
+								"disabled": true
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:9200/github/_settings",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_settings"
+							]
+						},
+						"description": "Meta data about the index"
+					},
+					"response": []
+				},
+				{
+					"name": "analyze demo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"analyzer\": \"path-analyzer\",\n  \"text\": \"https://github.com/fred/ted\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_analyze",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_analyze"
+							]
+						},
+						"description": "The github index contains an analyzer which will split a string on '/'. The analyze endpoint processes sample strings"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "queries",
+			"description": "",
+			"item": [
+				{
+					"name": "demo query library",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n    \"match_phrase\": {\"author\": \"Charles Dickens\"}\n  \n  }\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/library/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"library",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "demo query github",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n    \"match_all\": {}\n  \n  }\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "description highlight with bool",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n    \"bool\": {\n    \t\"must\": [\n    \t\t{\"match\": { \t\"description\": \"track\"  } \t} \t ,\n            {\"match\": {          \"language\": \"java\"  }  }\n         ]\n    }\n  \n  },\n  \"_source\": [\"description\",\"url\"],\n  \"highlight\": {\n  \t\"pre_tags\" : [\"<div class='highlight'>\"],\n        \"post_tags\" : [\"</div>\"],\n  \t\"fields\": { \"description\":{}} \n  \t\n  \t\t\n  \t\t\n  \t}\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "regex query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n     \"regexp\": {\n     \t\"text\":  {\"value\": \"tres.*\"}\n     }\n  \n  },\n  \"_source\": [\"text\",\"title\",\"author\"],\n  \"highlight\": {\n  \t\"pre_tags\" : [\"<div class='highlight'>\"],\n        \"post_tags\" : [\"</div>\"],\n  \t\"fields\": { \"text\":{}} \n  \t\n  \t\t\n  \t\t\n  \t}\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/library/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"library",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "author suggest query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " {\n  \"suggest\": {\n    \"card-suggest\": {\n      \"prefix\": \"Char\",\n      \"completion\": {\n        \"field\": \"author.suggest\"\n      }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/card_catalog/index_card/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"card_catalog",
+								"index_card",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "title suggest query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " {\n  \"suggest\": {\n    \"card-suggest\": {\n      \"prefix\": \"The\",\n      \"completion\": {\n        \"field\": \"title.suggest\"\n      }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/card_catalog/index_card/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"card_catalog",
+								"index_card",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "url path analyzer query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \"query\": {\n   \n   \"match_phrase\": {\n     \"url.token\": \"zulip\"\n   }\n  \n   }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/entry/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"entry",
+								"_search"
+							]
+						},
+						"description": "a demonstration of the github url path analyzer"
+					},
+					"response": []
+				},
+				{
+					"name": "lucene get query",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n    \"query\": {\n        \"multi_match\" : {\n            \"query\" : \"java\",\n            \"fields\" : [\"_all\"]\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search?q=language:java",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "language:java"
+								}
+							]
+						},
+						"description": "lucene query in the querystring"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "github -typeahead",
+			"description": "",
+			"item": [
+				{
+					"name": "keywordstring prefix typeahead",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": {\n    \"prefix\": {\n      \"description.keywordstring\": \"boil\"\n    }\n  },\n  \"_source\": [\"description\",\"url\"],\n  \"highlight\": {\n  \t\"pre_tags\" : [\"<div class='highlight'>\"],\n        \"post_tags\" : [\"</div>\"],\n  \t\"fields\": { \"description\":{}\n  \t} \n  \t\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ngram typeahead",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": {\n    \"match\": {\n      \"description.edgengram\": \"responsive boil\"\n    }\n  },\n  \"_source\": [\"description\",\"url\"],\n  \"highlight\": {\n  \t\"pre_tags\" : [\"<div class='highlight'>\"],\n        \"post_tags\" : [\"</div>\"],\n  \t\"fields\": { \"description\":{}\n  \t} \n  \t\n  }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "completion typeahead",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"suggest\": {\n        \"github-suggest\" : {\n            \"prefix\" : \"Server\", \n            \"completion\" : { \n                \"field\" : \"description.completion\"\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "app queries",
+			"description": "",
+			"item": [
+				{
+					"name": "Topics Match Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n    \n    \t\"match\": { \t\"topics\": \"testing\"  } \n    }\n  \n\n  \n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Date Range Query with sizing",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"from\":0, \"size\":20,\n     \"query\": {\n        \"range\" : {\n            \"created\" : {\n                \"gte\": \"01/01/2012\",\n                \"lte\": \"2013\",\n                \"format\": \"dd/MM/yyyy||yyyy\"\n            }\n        }\n    }\n\n  \n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						},
+						"description": "the format string parses the dates in the query "
+					},
+					"response": []
+				},
+				{
+					"name": "Topics Terms Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n    \n    \t\"terms\": { \t\"topics\": [\"testing\",\"java\"]  } \n    }\n  \n\n  \n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						},
+						"description": "will return a hit if the topics list contains AT LEAST ONE of the items in the list"
+					},
+					"response": []
+				},
+				{
+					"name": "Topics Terms-Set Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\" : {\n       \"terms_set\": {\n       \t   \"topics\" : {\n       \t   \t\"terms\": [\"testing\",\"java\"],\n       \t   \t\"minimum_should_match_script\":  {\n       \t   \t\t\"source\": \"params.num_terms\"\n       \t   \t}\n       \t   }\n       \t\n       }\n     \n    }\n  \n\n  \n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						},
+						"description": "will return a hit if the topics list contains AT LEAST ONE of the items in the list"
+					},
+					"response": []
+				},
+				{
+					"name": "all unique Topics/Languages def both",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n     \"query\": {\n      \n      \"bool\": {\n        \"must_not\": {\n          \"match\": {\n            \"language.keyword\":\"\"\n          }\n        },\n        \"must\": {\n          \"exists\": {\n\t\t\t\"field\": \"topics.keyword\"\n\t\t    }\n        }\n        \n        \n      }\n      \n      \n    }, \"size\": 0,\n    \"aggregations\": {\n\t\"unique_topics\": {\n\t    \"terms\": {\n\t\t\"field\": \"topics.keyword\",\n\t\t\"size\": 20,\n\t\t\"min_doc_count\": 0,\n\t\t\"shard_min_doc_count\": 0,\n\t\t\"show_term_doc_count_error\": false,\n\t\t\"order\": [\n\t\t    {\n\t\t\t\"_count\": \"desc\"\n\t\t    }, \n\t\t    {\n\t\t\t\"_key\": \"asc\"\n\t\t    }\n\t\t]\n\t    }\n\t},\n\t\"unique_lang\": {\n\t    \"terms\": {\n\t\t\"field\": \"language.keyword\",\n\t\t\"size\": 20,\n\t\t\"min_doc_count\": 0,\n\t\t\"shard_min_doc_count\": 0,\n\t\t\"show_term_doc_count_error\": false,\n\t\t\"order\": [\n\t\t    {\n\t\t\t\"_count\": \"desc\"\n\t\t    }, \n\t\t    {\n\t\t\t\"_key\": \"asc\"\n\t\t    }\n\t\t]\n\t    }\n\t}\n    }\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9200/github/_search",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"github",
+								"_search"
+							]
+						},
+						"description": "this query performs the aggregation on items that have a language ne \"\" and non empty topics list."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
