@@ -5,7 +5,6 @@
  */
 package com.dhenton9000.elastic.demo.services;
 
-import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import java.util.List;
 import java.util.Map;
