@@ -6,6 +6,7 @@
 package com.dhenton9000.elastic.demo.services;
 
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public interface GithubSearchService {
     public Map<String,List<Map<String, String>>> getUniqueTopicsAndLanguages();
     public GithubResultsPage getEntriesByTopics(List<String> topics,int pageOffset);
     public GithubResultsPage getEntriesByAllTopics(List<String> topics,int pageOffset);
-    
+    public GithubResultsPage getEntriesByDate(LocalDate start, LocalDate end, int pageOffset);
     
     
 }

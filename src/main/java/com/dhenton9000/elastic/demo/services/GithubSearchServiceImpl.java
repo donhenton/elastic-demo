@@ -6,6 +6,9 @@ import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -120,12 +123,21 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     }
 
+    @Override
     public GithubResultsPage getEntriesByDate(LocalDate start, LocalDate end, int pageOffset) {
+        
         List<GithubEntry> results = new ArrayList<>();
         GithubResultsPage page = setupPage(results, pageOffset);
         SearchSourceBuilder sourceBuilder = setupBuilder(pageOffset);
+        LocalDateTime endT = end.atTime(0,0,30);
+        endT.plusSeconds(1);
+        LocalDateTime startT = start.atTime(0,0,30);
+        startT.plusSeconds(1);
+        
+        ZonedDateTime startZonedDT = ZonedDateTime.ofLocal(startT, ZoneOffset.UTC, null);
+        ZonedDateTime endZonedDT = ZonedDateTime.ofLocal(endT, ZoneOffset.UTC, null);
 
-        RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(end).gte(start);
+        RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(endZonedDT).gte(startZonedDT);
         sourceBuilder.query(query);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         // LOG.debug(sourceBuilder.toString());
