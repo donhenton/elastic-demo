@@ -10,6 +10,10 @@ import org.apache.http.message.BasicHeader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -38,9 +42,16 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
         Map<String, Object> resObjs = new HashMap<String, Object>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-
+        QueryBuilder query = createKeyWordsExistQuery();
+        sourceBuilder.size(0);
+        sourceBuilder.query(query);
         sourceBuilder.aggregation(AggregationBuilders.terms("unique_topics").field("topics.keyword").size(20).minDocCount(0));
         sourceBuilder.aggregation(AggregationBuilders.terms("unique_lang").field("language.keyword").size(20).minDocCount(0));
+        
+        //this dumps the json for the actual query
+        
+        LOG.debug(sourceBuilder.toString());
+        
         SearchRequest searchRequest = new SearchRequest(INDEX);
 
         searchRequest.source(sourceBuilder);
@@ -83,6 +94,16 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     private Header createHeader() {
         Header h = new BasicHeader("request", "alpha");
         return h;
+    }
+
+    private BoolQueryBuilder createKeyWordsExistQuery() {
+        QueryBuilder a1 =
+               QueryBuilders.matchQuery("language.keyword","");//.boost(0.0f).boost(0.0f);
+         QueryBuilder a2 = 
+               QueryBuilders.existsQuery("topics.keyword");//.boost(0.0f).boost(0.0f);
+         
+        return QueryBuilders.boolQuery().mustNot(a1).must(a2);//.boost(0.0f) ;
+        
     }
 
 }
