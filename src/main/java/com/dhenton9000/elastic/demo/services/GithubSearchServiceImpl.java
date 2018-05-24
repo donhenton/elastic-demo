@@ -26,6 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -38,7 +43,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     private ObjectMapper mapper;
     @Autowired
     private RestTemplate restTemplate;
-    
+
     @Value("http://${es.host}:${es.port}")
     private String elasticSearchEndpoint;
 
@@ -52,7 +57,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     @Override
     public Map<String, List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
-        LOG.debug("template "+restTemplate+" "+this.elasticSearchEndpoint);
+        LOG.debug("template " + restTemplate + " " + this.elasticSearchEndpoint);
         Map<String, List<Map<String, String>>> returnedResults = new HashMap<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
@@ -113,8 +118,36 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     }
 
+    @Override
     public GithubResultsPage getEntriesByAllTopics(List<String> topics, int pageOffset) {
         List<GithubEntry> results = new ArrayList<>();
+        String url = this.elasticSearchEndpoint + "/github/_search";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String requestJson = "{\n"
+                + "  \"query\" : {\n"
+                + "       \"terms_set\": {\n"
+                + "       	   \"topics\" : {\n"
+                + "       	   	\"terms\": [\"testing\",\"java\"],\n"
+                + "       	   	\"minimum_should_match_script\":  {\n"
+                + "       	   		\"source\": \"params.num_terms\"\n"
+                + "       	   	}\n"
+                + "       	   }\n"
+                + "       	\n"
+                + "       }\n"
+                + "     \n"
+                + "    }\n"
+                + "  \n"
+                + "\n"
+                + "  \n"
+                + "}";
+
+        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+
+        ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        LOG.debug("zzzz \n" + response.getBody());
         return this.setupPage(results, pageOffset);
     }
 

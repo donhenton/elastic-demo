@@ -7,6 +7,9 @@ import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -91,9 +94,22 @@ public class ElasticDemoApplication {
     public static void main(String[] args) {
         SpringApplication.run(ElasticDemoApplication.class, args);
     }
-    
+
     @Bean
     public RestTemplate getTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate =  new RestTemplate(getClientHttpRequestFactory());
+        
+         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        
+        return restTemplate;
     }
+
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
+        int timeout = 5000;
+        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory
+                = new HttpComponentsClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(timeout);
+        return clientHttpRequestFactory;
+    }
+
 }
