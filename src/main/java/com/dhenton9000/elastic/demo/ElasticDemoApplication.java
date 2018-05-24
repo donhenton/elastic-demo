@@ -7,6 +7,7 @@ import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.builders.ApiInfoBuilder;
 import static springfox.documentation.builders.PathSelectors.regex;
@@ -89,5 +90,10 @@ public class ElasticDemoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ElasticDemoApplication.class, args);
+    }
+    
+    @Bean
+    public RestTemplate getTemplate() {
+        return new RestTemplate();
     }
 }

@@ -1,6 +1,5 @@
 package com.dhenton9000.elastic.demo.controllers;
 
-
 import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import com.dhenton9000.elastic.demo.services.GithubSearchService;
@@ -19,40 +18,42 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/github/search")
-public class GithubSearchController  {
+public class GithubSearchController {
 
     @Autowired
     private GithubSearchService githubService;
 
     private static final Logger LOG = LoggerFactory.getLogger(GithubSearchController.class);
-    
-    
+
     @RequestMapping(method = RequestMethod.GET, path = "/uniqueterms", produces = "application/json")
     @ApiOperation(value = "Get Unique Terms", notes = "language and topics")
 
-    public Map<String,List<Map<String, String>>> getUniqueTopicsAndLanguages() {
+    public Map<String, List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
-       
-       return githubService.getUniqueTopicsAndLanguages();
-        
+        return githubService.getUniqueTopicsAndLanguages();
 
     }
-    
-    
+
     @RequestMapping(method = RequestMethod.GET, path = "/entries/topics", produces = "application/json")
-    @ApiOperation(value = "Get Entries by Topics", notes = "send in string delimited list")
+    @ApiOperation(value = "Get Entries by Topics", notes = "send in string delimited list at least one topic must match the list")
 
-    public GithubResultsPage  getEntriesByTopics(
+    public GithubResultsPage getEntriesByTopics(
             @RequestParam List<String> topics,
-            @RequestParam int pageOffset ) {
+            @RequestParam int pageOffset) {
 
-        
-       return githubService.getEntriesByTopics(topics,pageOffset);
-        
+        return githubService.getEntriesByTopics(topics, pageOffset);
 
     }
 
-    
-    
+    @RequestMapping(method = RequestMethod.GET, path = "/entries/all/topics", produces = "application/json")
+    @ApiOperation(value = "Get Entries by Topics", notes = "send in string delimited list topics must match all entries")
+
+    public GithubResultsPage getEntriesByAllTopics(
+            @RequestParam List<String> topics,
+            @RequestParam int pageOffset) {
+
+        return githubService.getEntriesByAllTopics(topics, pageOffset);
+
+    }
 
 }

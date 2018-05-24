@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class GithubSearchServiceImpl implements GithubSearchService {
@@ -35,6 +36,9 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     RestHighLevelClient client;
     @Autowired
     private ObjectMapper mapper;
+    @Autowired
+    private RestTemplate restTemplate;
+    
     @Value("http://${es.host}:${es.port}")
     private String elasticSearchEndpoint;
 
@@ -48,7 +52,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     @Override
     public Map<String, List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
-        LOG.debug("mapper "+mapper+" "+this.elasticSearchEndpoint);
+        LOG.debug("template "+restTemplate+" "+this.elasticSearchEndpoint);
         Map<String, List<Map<String, String>>> returnedResults = new HashMap<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
