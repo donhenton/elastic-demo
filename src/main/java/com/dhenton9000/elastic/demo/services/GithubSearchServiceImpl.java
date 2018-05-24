@@ -126,25 +126,6 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_JSON);
-/*
-        String requestJson = "{\n"
-                + "  \"query\" : {\n"
-                + "       \"terms_set\": {\n"
-                + "       	   \"topics\" : {\n"
-                + "       	   	\"terms\": [\"testing\",\"java\"],\n"
-                + "       	   	\"minimum_should_match_script\":  {\n"
-                + "       	   		\"source\": \"params.num_terms\"\n"
-                + "       	   	}\n"
-                + "       	   }\n"
-                + "       	\n"
-                + "       }\n"
-                + "     \n"
-                + "    }\n"
-                + "  \n"
-                + "\n"
-                + "  \n"
-                + "}";
-*/
         String requestJSON = UtilsService.getStringResource("queries/allTopics.txt");
 
         StringBuilder b = new StringBuilder();
@@ -159,8 +140,10 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         String listing = b.toString();
         listing = listing.substring(0,listing.length()-1);
         listing = listing + "]";
-        requestJSON = String.format(requestJSON,listing);
-       // LOG.debug(requestJSON);
+      //  RESULTS_COUNT * pageOffset
+        
+        requestJSON = String.format(requestJSON,RESULTS_COUNT * pageOffset,RESULTS_COUNT,listing);
+        LOG.debug(requestJSON);
         HttpEntity<String> entity = new HttpEntity<>(requestJSON, headers);
 
         ResponseEntity<HashMap> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
@@ -188,7 +171,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         TermsQueryBuilder query = QueryBuilders.termsQuery("topics", topics);
         sourceBuilder.query(query);
         SearchRequest searchRequest = new SearchRequest(INDEX);
-
+       // LOG.debug(sourceBuilder.toString());
         searchRequest.source(sourceBuilder);
         try {
 
