@@ -3,6 +3,7 @@ package com.dhenton9000.elastic.demo.services;
 import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,6 +33,10 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     @Autowired
     RestHighLevelClient client;
+    @Autowired
+    private ObjectMapper mapper;
+    @Value("http://${es.host}:${es.port}")
+    private String elasticSearchEndpoint;
 
     public GithubSearchServiceImpl() {
 
@@ -42,6 +48,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     @Override
     public Map<String, List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
+        LOG.debug("mapper "+mapper+" "+this.elasticSearchEndpoint);
         Map<String, List<Map<String, String>>> returnedResults = new HashMap<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
