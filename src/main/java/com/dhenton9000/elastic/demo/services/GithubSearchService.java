@@ -5,6 +5,7 @@
  */
 package com.dhenton9000.elastic.demo.services;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,5 +15,5 @@ import java.util.Map;
 public interface GithubSearchService {
     public static final String INDEX = "github";
 
-    public Map<String,Object> getUniqueTopicsAndLanguages();
+    public Map<String,List<Map<String, String>>> getUniqueTopicsAndLanguages();
 }

@@ -4,6 +4,7 @@ package com.dhenton9000.elastic.demo.controllers;
 import com.dhenton9000.elastic.demo.services.GithubSearchService;
 import io.swagger.annotations.ApiOperation;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class GithubSearchController {
     
     @RequestMapping(method = RequestMethod.GET, path = "/uniqueterms", produces = "application/json")
     @ApiOperation(value = "Get Unique Terms", notes = "language and topics")
-    public Map<String,Object> getAggs() {
+    public Map<String,List<Map<String, String>>> getAggs() {
 
        
        return githubService.getUniqueTopicsAndLanguages();

@@ -1,6 +1,7 @@
 package com.dhenton9000.elastic.demo.services;
 
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,12 +11,9 @@ import org.apache.http.message.BasicHeader;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -38,20 +36,31 @@ public class GithubSearchServiceImpl implements GithubSearchService {
             = LoggerFactory.getLogger(GithubSearchServiceImpl.class);
 
     @Override
-    public Map<String, Object> getUniqueTopicsAndLanguages() {
+    public Map<String, List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
-        Map<String, Object> resObjs = new HashMap<String, Object>();
+        Map<String, List<Map<String, String>>> returnedResults = new HashMap<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        QueryBuilder query = createKeyWordsExistQuery();
-        sourceBuilder.size(0);
+
+        QueryBuilder languageFilter
+                = QueryBuilders.matchQuery("language.keyword", "");//.boost(0.0f).boost(0.0f);
+        QueryBuilder topicsFilter
+                = QueryBuilders.existsQuery("topics.keyword");//.boost(0.0f).boost(0.0f);
+
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .mustNot(languageFilter)
+                .must(topicsFilter); 
+
+        sourceBuilder.size(0); // don't return any samples
         sourceBuilder.query(query);
-        sourceBuilder.aggregation(AggregationBuilders.terms("unique_topics").field("topics.keyword").size(20).minDocCount(0));
-        sourceBuilder.aggregation(AggregationBuilders.terms("unique_lang").field("language.keyword").size(20).minDocCount(0));
+        sourceBuilder.aggregation(AggregationBuilders.terms("unique_topics")
+                .field("topics.keyword").size(20).minDocCount(0));
+        sourceBuilder.aggregation(AggregationBuilders.terms("unique_lang")
+                .field("language.keyword").size(20).minDocCount(0));
+
         
-        //this dumps the json for the actual query
-        
-        LOG.debug(sourceBuilder.toString());
-        
+        // this dumps the json for the actual query
+        // LOG.debug(sourceBuilder.toString());
+
         SearchRequest searchRequest = new SearchRequest(INDEX);
 
         searchRequest.source(sourceBuilder);
@@ -61,33 +70,34 @@ public class GithubSearchServiceImpl implements GithubSearchService {
             SearchResponse res = this.client.search(searchRequest, h);
             res.getAggregations().asList().forEach((Aggregation agg) -> {
                 Terms termData = res.getAggregations().get(agg.getName());
-                List<Map<String, Object>> items = new ArrayList<>();
+                List<Map<String, String>> items = new ArrayList<>();
                 termData.getBuckets().forEach(b -> {
-                    Map<String, Object> countPair = new HashMap<>();
-                    
+                    Map<String, String> countPair = new HashMap<>();
+
                     String key = b.getKeyAsString();
+                    //this has been filtered out (hopefully!)
                     if (key == null || key.isEmpty()) {
                         key = "UNDEF";
                     }
-                    
-                    countPair.put("key",key);
-                    countPair.put("docCount", b.getDocCount());
+
+                    countPair.put("key", key);
+                    countPair.put("docCount", b.getDocCount()+"");
                     items.add(countPair);
 
                 });
 
-                resObjs.put(agg.getName(), items);
+                returnedResults.put(agg.getName(), items);
 
                 //  LOG.debug("putting "+agg.getName()+" "+termData.getBuckets());
             });
 
-            return resObjs;
+            return returnedResults;
 
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             LOG.error("io exception for search " + ex.getMessage());
         }
 
-        return resObjs;
+        return returnedResults;
 
     }
 
@@ -96,14 +106,6 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         return h;
     }
 
-    private BoolQueryBuilder createKeyWordsExistQuery() {
-        QueryBuilder a1 =
-               QueryBuilders.matchQuery("language.keyword","");//.boost(0.0f).boost(0.0f);
-         QueryBuilder a2 = 
-               QueryBuilders.existsQuery("topics.keyword");//.boost(0.0f).boost(0.0f);
-         
-        return QueryBuilders.boolQuery().mustNot(a1).must(a2);//.boost(0.0f) ;
-        
-    }
+   
 
 }
