@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/github/search")
-public class GithubSearchController {
+public class GithubSearchController implements GithubSearchService {
 
     @Autowired
     private GithubSearchService githubService;
@@ -29,7 +29,8 @@ public class GithubSearchController {
     
     @RequestMapping(method = RequestMethod.GET, path = "/uniqueterms", produces = "application/json")
     @ApiOperation(value = "Get Unique Terms", notes = "language and topics")
-    public Map<String,List<Map<String, String>>> getAggs() {
+    @Override
+    public Map<String,List<Map<String, String>>> getUniqueTopicsAndLanguages() {
 
        
        return githubService.getUniqueTopicsAndLanguages();
@@ -40,7 +41,8 @@ public class GithubSearchController {
     
     @RequestMapping(method = RequestMethod.GET, path = "/entries/topics", produces = "application/json")
     @ApiOperation(value = "Get Entries by Topics", notes = "send in string delimited list")
-    public GithubResultsPage  getEntiresByTopics(
+    @Override
+    public GithubResultsPage  getEntriesByTopics(
             @RequestParam List<String> topics,
             @RequestParam int pageOffset ) {
 
@@ -49,6 +51,7 @@ public class GithubSearchController {
         
 
     }
+
     
     
 

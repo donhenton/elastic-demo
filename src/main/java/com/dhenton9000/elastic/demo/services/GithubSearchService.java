@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public interface GithubSearchService {
     
-    public int RESULTS_COUNT = 10;
+    public int RESULTS_COUNT = 25;
     public static final String INDEX = "github";
 
     public Map<String,List<Map<String, String>>> getUniqueTopicsAndLanguages();
