@@ -121,11 +121,12 @@ public class GithubSearchServiceImpl implements GithubSearchService {
     @Override
     public GithubResultsPage getEntriesByAllTopics(List<String> topics, int pageOffset) {
         List<GithubEntry> results = new ArrayList<>();
+        GithubResultsPage page = this.setupPage(results, pageOffset);
         String url = this.elasticSearchEndpoint + "/github/_search";
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
         headers.setContentType(MediaType.APPLICATION_JSON);
-
+/*
         String requestJson = "{\n"
                 + "  \"query\" : {\n"
                 + "       \"terms_set\": {\n"
@@ -143,12 +144,40 @@ public class GithubSearchServiceImpl implements GithubSearchService {
                 + "\n"
                 + "  \n"
                 + "}";
+*/
+        String requestJSON = UtilsService.getStringResource("queries/allTopics.txt");
 
-        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+        StringBuilder b = new StringBuilder();
+        b.append("[");
+        topics.forEach(s -> {
+            b.append("\"");
+            b.append(s);
+            b.append("\"");
+            b.append(",");
+        });
+        
+        String listing = b.toString();
+        listing = listing.substring(0,listing.length()-1);
+        listing = listing + "]";
+        requestJSON = String.format(requestJSON,listing);
+       // LOG.debug(requestJSON);
+        HttpEntity<String> entity = new HttpEntity<>(requestJSON, headers);
 
-        ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-        LOG.debug("zzzz \n" + response.getBody());
-        return this.setupPage(results, pageOffset);
+        ResponseEntity<HashMap> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
+
+        HashMap topMap = response.getBody();
+        Map hitsMap = (Map) topMap.get("hits");
+        Integer total = (Integer) hitsMap.get("total");
+        List<Map<String, Object>> hitList = (List<Map<String, Object>>) hitsMap.get("hits");
+
+        hitList.forEach(objMap -> {
+            Map<String, Object> sourceData = (Map<String, Object>) objMap.get("_source");
+            results.add(GithubEntry.createEntry(sourceData));
+        });
+        page.setResults(results);
+        page.setTotalCount(total);
+
+        return page;
     }
 
     @Override

@@ -1,0 +1,17 @@
+{
+  "query" : {
+       "terms_set": {
+       	   "topics" : {
+       	   	"terms": %s,
+       	   	"minimum_should_match_script":  {
+       	   		"source": "params.num_terms"
+       	   	}
+       	   }
+       	
+       }
+     
+    }
+  
+
+  
+}

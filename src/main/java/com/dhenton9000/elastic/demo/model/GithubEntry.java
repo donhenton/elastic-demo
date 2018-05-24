@@ -14,22 +14,32 @@ public class GithubEntry {
         g.setOwner(source.get("owner") + "");
         g.setDescription(source.get("description") + "");
         g.setUrl(source.get("url") + "");
-        g.setStarCount(Integer.parseInt(source.get("size") + ""));
-        g.setForkCount(Integer.parseInt(source.get("forks") + ""));
-        g.setWatcherCount(Integer.parseInt(source.get("watchers") + ""));
+        g.setStarCount(intParse(source.get("stars")));
+        g.setForkCount(intParse(source.get("forks")));
+        g.setWatcherCount(intParse(source.get("watchers")));
         g.setName((source.get("name") + ""));
         g.setLanguage((source.get("language") + ""));
         ArrayList<String> topics = (ArrayList<String>) source.get("topics");
-        g.setTopics(topics );
+        g.setTopics(topics);
         g.setAvatarUrl((source.get("avatar") + ""));
-        String createDateString = source.get("created")+"";
+        String createDateString = source.get("created") + "";
         String[] dateParts = createDateString.split("Z");
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        LocalDateTime createDate = LocalDateTime.parse(dateParts[0],formatter);
+        LocalDateTime createDate = LocalDateTime.parse(dateParts[0], formatter);
         g.setCreated(createDate);
-        
-        
+
         return g;
+    }
+
+    private static int intParse(Object source) throws NumberFormatException {
+        if (source == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(source + "");
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private String name;
