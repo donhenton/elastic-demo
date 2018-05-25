@@ -10,8 +10,12 @@ import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
+/*
+this may only be needed for handling errors for serving web pages
+the ControllerAdvice may be for REST stuff
+
+*/
 @Controller
 public class CustomErrorController extends AbstractErrorController {
 

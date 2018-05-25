@@ -5,6 +5,10 @@
  */
 package com.dhenton9000.elastic.demo.support;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -22,7 +26,8 @@ public class ExceptionControllerAdvice {
     }
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<GenericError> handleException(Exception e) {
+    public ResponseEntity<GenericError> handleException(HttpServletRequest request, Exception e) {
+        // Map<String, Object> items = getErrorAttributes(request, true);
 
         GenericError ge = new GenericError(e);
         return new ResponseEntity<>(ge,
@@ -34,15 +39,22 @@ public class ExceptionControllerAdvice {
         private final String message;
         private final String className;
         private final boolean error = true;
+        private final String stackTrace;
 
         public GenericError() {
             this.message = null;
             this.className = null;
+            this.stackTrace = null;
         }
 
         public GenericError(Exception e) {
             this.message = e.getMessage();
             this.className = e.getClass().getName();
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            this.stackTrace = sw.toString();
+
         }
 
         /**
@@ -65,6 +77,14 @@ public class ExceptionControllerAdvice {
         public boolean isError() {
             return error;
         }
+
+        /**
+         * @return the stackTrace
+         */
+        public String getStackTrace() {
+            return stackTrace;
+        }
+ 
 
     }
 
