@@ -1,19 +1,16 @@
 package com.dhenton9000.elastic.demo.controllers;
 
-import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
+import com.dhenton9000.elastic.demo.model.YearHistogram;
 import com.dhenton9000.elastic.demo.services.GithubSearchService;
 import io.swagger.annotations.ApiOperation;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -70,5 +67,17 @@ public class GithubSearchController {
          
          return githubService.getEntriesByDate(start,end, pageOffset);
      }
+     
+     
+    @RequestMapping(method = RequestMethod.GET, path = "/year/histogram", produces = "application/json")
+    @ApiOperation(value = "Get project count for months in a year", notes = "year in form YYYY, returns the count of projects for each month in that year")
+
+    public YearHistogram  getYearHistogram(
+            @RequestParam  String year) {
+
+        return githubService.getYearHistogram(year);
+
+    }
+     
 
 }

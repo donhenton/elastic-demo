@@ -2,13 +2,14 @@ package com.dhenton9000.elastic.demo.services;
 
 import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
+import com.dhenton9000.elastic.demo.model.YearHistogram;
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
+import org.elasticsearch.search.aggregations.bucket.histogram.ParsedDateHistogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
@@ -110,7 +113,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
                 returnedResults.put(agg.getName(), items);
 
-                //  LOG.debug("putting "+agg.getName()+" "+termData.getBuckets());
+                //  LOG.debug("putting "+agg.getName()+" "+dateData.getBuckets());
             });
 
             return returnedResults;
@@ -125,19 +128,14 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
     @Override
     public GithubResultsPage getEntriesByDate(LocalDate start, LocalDate end, int pageOffset) {
-        
+
         List<GithubEntry> results = new ArrayList<>();
         GithubResultsPage page = setupPage(results, pageOffset);
         SearchSourceBuilder sourceBuilder = setupBuilder(pageOffset);
-        LocalDateTime endT = end.atTime(0,0,30);
-        endT.plusSeconds(1);
-        LocalDateTime startT = start.atTime(0,0,30);
-        startT.plusSeconds(1);
-        
-        ZonedDateTime startZonedDT = ZonedDateTime.ofLocal(startT, ZoneOffset.UTC, null);
-        ZonedDateTime endZonedDT = ZonedDateTime.ofLocal(endT, ZoneOffset.UTC, null);
-
-        RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(endZonedDT).gte(startZonedDT);
+        LocalDateTime endT = end.atTime(0, 0, 30);
+        LocalDateTime startT = start.atTime(0, 0, 30);
+        // yyyy-MM-dd'T'HH:mm:ss
+        RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(endT).gte(startT);
         sourceBuilder.query(query);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         // LOG.debug(sourceBuilder.toString());
@@ -228,6 +226,56 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         return page;
     }
 
+    @Override
+    public YearHistogram getYearHistogram(String year) {
+        YearHistogram yearGram = new YearHistogram();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.size(0); // don't return any samples
+        List<Map<String, Object>> bucketData = new ArrayList<>();
+        yearGram.setBucketData(bucketData);
+
+        String startYearStr = year + "-01-01";
+        // LocalDate d = LocalDate.parse(year, DateTimeFormatter.ISO_DATE)
+        LocalDate s = LocalDate.parse(startYearStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        LocalDateTime startT = s.atTime(0, 0, 1);
+        LocalDateTime endT = startT.plusYears(1);
+
+        RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(endT).gte(startT);
+        sourceBuilder.query(query);
+        
+         sourceBuilder.aggregation(AggregationBuilders
+                 .dateHistogram("projects_over_time")
+                  .field("created")
+                  .format("yyy-MM-dd")
+                  .dateHistogramInterval(DateHistogramInterval.MONTH)
+         );
+                
+        
+        
+        SearchRequest searchRequest = new SearchRequest(INDEX);
+       // LOG.debug("start "+startT.toString()+" end "+endT.toString());
+        searchRequest.source(sourceBuilder);
+        try {
+
+            SearchResponse res = this.client.search(searchRequest);
+            yearGram.setTotalHits(res.getHits().totalHits);
+            if (res.getAggregations() != null) {
+                ParsedDateHistogram dateData = res.getAggregations().get("projects_over_time");
+                dateData.getBuckets().forEach(b -> {
+                    Map<String, Object> d = new HashMap<>();
+                    d.put("count", b.getDocCount());
+                    d.put("interval",b.getKeyAsString());
+                    bucketData.add(d);
+                });
+            }
+
+        } catch (IOException ex) {
+            LOG.error("io exception for search " + ex.getMessage());
+        }
+
+        return yearGram;
+    }
+
     private SearchSourceBuilder setupBuilder(int pageOffset) {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.from(RESULTS_COUNT * pageOffset);
@@ -250,4 +298,5 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         page.setPageOffset(pageOffset);
         return page;
     }
+
 }
