@@ -18,12 +18,7 @@
     <logger name="org.springframework">
         <level value="ERROR"/>
     </logger>
-    <logger name="org.elasticsearch.common.logging.ESLoggerFactory">
-        <level value="TRACE"/>
-    </logger>
-    
-    
-
+  
     <logger name="com.dhenton9000">
         <level value="DEBUG"/>
     </logger>

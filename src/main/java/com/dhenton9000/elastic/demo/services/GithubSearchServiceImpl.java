@@ -2,7 +2,7 @@ package com.dhenton9000.elastic.demo.services;
 
 import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
-import com.dhenton9000.elastic.demo.model.YearHistogram;
+import com.dhenton9000.elastic.demo.model.HistogramData;
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -18,6 +18,7 @@ import java.util.Map;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -27,7 +28,9 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
+import org.elasticsearch.search.aggregations.bucket.histogram.HistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.ParsedDateHistogram;
+import org.elasticsearch.search.aggregations.bucket.histogram.ParsedHistogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
@@ -226,9 +229,59 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         return page;
     }
 
+    
     @Override
-    public YearHistogram getYearHistogram(String year) {
-        YearHistogram yearGram = new YearHistogram();
+    public HistogramData getDataHistogramForField(String field) {
+        HistogramData dataGram = new HistogramData();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.size(0); // don't return any samples
+        List<Map<String, Object>> bucketData = new ArrayList<>();
+        dataGram.setBucketData(bucketData);
+        String aggName = field + "_histogram";
+        List<String> allowedFields = Arrays.asList("stars", "forks");
+        if (!allowedFields.contains(field)) {
+            throw new RuntimeException("field '" + field
+                    + "' is not allowed, only " + allowedFields.toString() 
+                    + " are allowed");
+        }
+
+        MatchAllQueryBuilder query = QueryBuilders.matchAllQuery();
+        sourceBuilder.query(query);
+        HistogramAggregationBuilder agg
+                = AggregationBuilders.histogram(aggName)
+                        .field(field)
+                        .interval(100.0d)
+                        .minDocCount(10);
+        sourceBuilder.aggregation(agg);
+        SearchRequest searchRequest = new SearchRequest(INDEX);
+        searchRequest.source(sourceBuilder);
+         try {
+
+            SearchResponse res = this.client.search(searchRequest);
+            dataGram.setTotalHits(res.getHits().totalHits);
+            if (res.getAggregations() != null) {
+                ParsedHistogram dateData = res.getAggregations().get(aggName);
+                dateData.getBuckets().forEach(b -> {
+                    Map<String, Object> d = new HashMap<>();
+                    d.put("count", b.getDocCount());
+                    d.put("interval", b.getKeyAsString());
+                    bucketData.add(d);
+                });
+            }
+
+        } catch (IOException ex) {
+            LOG.error("io exception for search " + ex.getMessage());
+        }
+        
+
+        return dataGram;
+    }
+
+   
+
+    @Override
+    public HistogramData getYearHistogram(String year) {
+        HistogramData yearGram = new HistogramData();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.size(0); // don't return any samples
         List<Map<String, Object>> bucketData = new ArrayList<>();
@@ -242,18 +295,16 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
         RangeQueryBuilder query = QueryBuilders.rangeQuery("created").lte(endT).gte(startT);
         sourceBuilder.query(query);
-        
-         sourceBuilder.aggregation(AggregationBuilders
-                 .dateHistogram("projects_over_time")
-                  .field("created")
-                  .format("yyy-MM-dd")
-                  .dateHistogramInterval(DateHistogramInterval.MONTH)
-         );
-                
-        
-        
+
+        sourceBuilder.aggregation(AggregationBuilders
+                .dateHistogram("projects_over_time")
+                .field("created")
+                .format("yyy-MM-dd")
+                .dateHistogramInterval(DateHistogramInterval.MONTH)
+        );
+
         SearchRequest searchRequest = new SearchRequest(INDEX);
-       // LOG.debug("start "+startT.toString()+" end "+endT.toString());
+        // LOG.debug("start "+startT.toString()+" end "+endT.toString());
         searchRequest.source(sourceBuilder);
         try {
 
@@ -264,7 +315,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
                 dateData.getBuckets().forEach(b -> {
                     Map<String, Object> d = new HashMap<>();
                     d.put("count", b.getDocCount());
-                    d.put("interval",b.getKeyAsString());
+                    d.put("interval", b.getKeyAsString());
                     bucketData.add(d);
                 });
             }

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
  
-public class YearHistogram {
+public class HistogramData {
 
     private List<Map<String,Object>> bucketData;
     

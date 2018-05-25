@@ -1,7 +1,7 @@
 package com.dhenton9000.elastic.demo.controllers;
 
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
-import com.dhenton9000.elastic.demo.model.YearHistogram;
+import com.dhenton9000.elastic.demo.model.HistogramData;
 import com.dhenton9000.elastic.demo.services.GithubSearchService;
 import io.swagger.annotations.ApiOperation;
 import java.time.LocalDate;
@@ -57,27 +57,32 @@ public class GithubSearchController {
     }
     //@RequestParam(name = "date", required = false) to allow a parameter to be optional
     //https://blog.codecentric.de/en/2017/08/parsing-of-localdate-query-parameters-in-spring-boot/
-    
+
     @RequestMapping(method = RequestMethod.GET, path = "/entries/dates", produces = "application/json")
     @ApiOperation(value = "Get Entries by date range", notes = "date range dates in format yyyy-MM-dd")
-     public GithubResultsPage getEntriesByDate(
-              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start, 
-              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end, 
-              @RequestParam int pageOffset) {
-         
-         return githubService.getEntriesByDate(start,end, pageOffset);
-     }
-     
-     
+    public GithubResultsPage getEntriesByDate(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
+            @RequestParam int pageOffset) {
+
+        return githubService.getEntriesByDate(start, end, pageOffset);
+    }
+
     @RequestMapping(method = RequestMethod.GET, path = "/year/histogram", produces = "application/json")
     @ApiOperation(value = "Get project count for months in a year", notes = "year in form YYYY, returns the count of projects for each month in that year")
 
-    public YearHistogram  getYearHistogram(
-            @RequestParam  String year) {
+    public HistogramData getYearHistogram(
+            @RequestParam String year) {
 
         return githubService.getYearHistogram(year);
 
     }
-     
+
+    @RequestMapping(method = RequestMethod.GET, path = "/field/histogram", produces = "application/json")
+    @ApiOperation(value = "Get project count for field", notes = "field is either stars or forks")
+
+    public HistogramData getDataHistogramForField(String field) {
+        return githubService.getDataHistogramForField(field);
+    }
 
 }
