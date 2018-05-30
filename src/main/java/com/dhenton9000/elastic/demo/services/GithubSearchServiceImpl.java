@@ -18,6 +18,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -354,7 +355,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         List<GithubEntry> results = new ArrayList<>();
         GithubResultsPage page = setupPage(results, pageOffset);
         SearchSourceBuilder sourceBuilder = setupBuilder(pageOffset);
-        TermsQueryBuilder query = QueryBuilders.termsQuery("language", language);
+        MatchQueryBuilder query = QueryBuilders.matchQuery("language", language);
         sourceBuilder.query(query);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         // LOG.debug(sourceBuilder.toString());
