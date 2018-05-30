@@ -44,6 +44,17 @@ public class GithubSearchController {
         return githubService.getEntriesByTopics(topics, pageOffset);
 
     }
+    
+    @RequestMapping(method = RequestMethod.GET, path = "/entries/language", produces = "application/json")
+    @ApiOperation(value = "Get Entries by Language", notes = "send in single language string")
+
+    public GithubResultsPage getEntriesByLanguage(
+            @RequestParam String language,
+            @RequestParam int pageOffset) {
+
+        return githubService.getEntriesByLanguage(language, pageOffset);
+
+    }
 
     @RequestMapping(method = RequestMethod.GET, path = "/entries/all/topics", produces = "application/json")
     @ApiOperation(value = "Get Entries by All Topics", notes = "send in string delimited list topics must match all entries")

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -347,6 +346,21 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         page.setResults(results);
         page.setPerPageCount(RESULTS_COUNT);
         page.setPageOffset(pageOffset);
+        return page;
+    }
+
+    @Override
+    public GithubResultsPage getEntriesByLanguage(String language, int pageOffset) {
+        List<GithubEntry> results = new ArrayList<>();
+        GithubResultsPage page = setupPage(results, pageOffset);
+        SearchSourceBuilder sourceBuilder = setupBuilder(pageOffset);
+        TermsQueryBuilder query = QueryBuilders.termsQuery("language", language);
+        sourceBuilder.query(query);
+        SearchRequest searchRequest = new SearchRequest(INDEX);
+        // LOG.debug(sourceBuilder.toString());
+        searchRequest.source(sourceBuilder);
+        loadResults(searchRequest, page, results);
+
         return page;
     }
 

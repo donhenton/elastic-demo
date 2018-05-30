@@ -26,5 +26,6 @@ public interface GithubSearchService {
     public GithubResultsPage getEntriesByDate(LocalDate start, LocalDate end, int pageOffset);
     public HistogramData  getYearHistogram(String year);
     public HistogramData getDataHistogramForField(String field);
+    public GithubResultsPage getEntriesByLanguage(String language,int pageOffset);
     
 }
