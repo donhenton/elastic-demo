@@ -2,6 +2,7 @@ package com.dhenton9000.elastic.demo.controllers;
 
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import com.dhenton9000.elastic.demo.model.HistogramData;
+import com.dhenton9000.elastic.demo.model.SuggestionList;
 import com.dhenton9000.elastic.demo.services.GithubSearchService;
 import io.swagger.annotations.ApiOperation;
 import java.time.LocalDate;
@@ -80,7 +81,8 @@ public class GithubSearchController {
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/year/histogram", produces = "application/json")
-    @ApiOperation(value = "Get project count for months in a year", notes = "year in form YYYY, returns the count of projects for each month in that year")
+    @ApiOperation(value = "Get project count for months in a year", 
+            notes = "year in form YYYY, returns the count of projects for each month in that year")
 
     public HistogramData getYearHistogram(
             @RequestParam String year) {
@@ -96,4 +98,12 @@ public class GithubSearchController {
         return githubService.getDataHistogramForField(field);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/suggestion", produces = "application/json")
+    @ApiOperation(value = "Get project count for field", notes = "field is either stars or forks")
+
+    public SuggestionList getSuggestionsOnDescription(@RequestParam String entryText) {
+        return githubService.getSuggestionsOnDescription(entryText);
+    }
+    
+    
 }

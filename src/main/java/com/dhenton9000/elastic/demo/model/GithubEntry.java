@@ -27,6 +27,10 @@ public class GithubEntry {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         LocalDateTime createDate = LocalDateTime.parse(dateParts[0], formatter);
         g.setCreated(createDate);
+        Object id = source.get("id");
+        if (id != null) {
+            g.setId(id.toString());
+        }
 
         return g;
     }
@@ -53,6 +57,7 @@ public class GithubEntry {
     private ArrayList<String> topics;
     private String language;
     private int watcherCount;
+    private String id = null;
 
     /**
      * @return the name
@@ -236,6 +241,20 @@ public class GithubEntry {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 
 }

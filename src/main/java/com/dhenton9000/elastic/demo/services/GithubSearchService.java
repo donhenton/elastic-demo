@@ -7,6 +7,7 @@ package com.dhenton9000.elastic.demo.services;
 
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import com.dhenton9000.elastic.demo.model.HistogramData;
+import com.dhenton9000.elastic.demo.model.SuggestionList;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -27,5 +28,6 @@ public interface GithubSearchService {
     public HistogramData  getYearHistogram(String year);
     public HistogramData getDataHistogramForField(String field);
     public GithubResultsPage getEntriesByLanguage(String language,int pageOffset);
+    public SuggestionList getSuggestionsOnDescription(String entryText);
     
 }

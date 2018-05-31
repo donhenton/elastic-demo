@@ -1,0 +1,12 @@
+{
+    "suggest": {
+        "github-suggest" : {
+            "prefix" : "%s", 
+ 
+            "completion" : { 
+                "field" : "description.completion",
+                "size":10 
+            }
+        }
+    }
+}

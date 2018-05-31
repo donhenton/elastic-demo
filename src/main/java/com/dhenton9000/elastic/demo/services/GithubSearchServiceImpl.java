@@ -3,6 +3,7 @@ package com.dhenton9000.elastic.demo.services;
 import com.dhenton9000.elastic.demo.model.GithubEntry;
 import com.dhenton9000.elastic.demo.model.GithubResultsPage;
 import com.dhenton9000.elastic.demo.model.HistogramData;
+import com.dhenton9000.elastic.demo.model.SuggestionList;
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -19,10 +20,12 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.PrefixQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.TermsQueryBuilder;
+
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -33,6 +36,7 @@ import org.elasticsearch.search.aggregations.bucket.histogram.ParsedDateHistogra
 import org.elasticsearch.search.aggregations.bucket.histogram.ParsedHistogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,6 +159,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
             page.setTotalCount(searchHits.getTotalHits());
             Arrays.asList(searchHits.getHits()).forEach((SearchHit hit) -> {
                 GithubEntry g = GithubEntry.createEntry(hit.getSourceAsMap());
+                g.setId(hit.getId());
                 results.add(g);
             });
 
@@ -229,7 +234,6 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         return page;
     }
 
-    
     @Override
     public HistogramData getDataHistogramForField(String field) {
         HistogramData dataGram = new HistogramData();
@@ -241,7 +245,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         List<String> allowedFields = Arrays.asList("stars", "forks");
         if (!allowedFields.contains(field)) {
             throw new RuntimeException("field '" + field
-                    + "' is not allowed, only " + allowedFields.toString() 
+                    + "' is not allowed, only " + allowedFields.toString()
                     + " are allowed");
         }
 
@@ -255,7 +259,7 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         sourceBuilder.aggregation(agg);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         searchRequest.source(sourceBuilder);
-         try {
+        try {
 
             SearchResponse res = this.client.search(searchRequest);
             dataGram.setTotalHits(res.getHits().totalHits);
@@ -272,12 +276,9 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         } catch (IOException ex) {
             LOG.error("io exception for search " + ex.getMessage());
         }
-        
 
         return dataGram;
     }
-
-   
 
     @Override
     public HistogramData getYearHistogram(String year) {
@@ -363,6 +364,40 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         loadResults(searchRequest, page, results);
 
         return page;
+    }
+
+    @Override
+    public SuggestionList getSuggestionsOnDescription(String entryText) {
+        SuggestionList sList = new SuggestionList();
+        sList.setInputText(entryText);
+        List<GithubEntry> results = new ArrayList<>();
+        String url = this.elasticSearchEndpoint + "/github/_search";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String requestJSON = UtilsService.getStringResource("queries/suggest.txt");
+        requestJSON = String.format(requestJSON, entryText);
+        //   LOG.debug(requestJSON);
+        HttpEntity<String> entity = new HttpEntity<>(requestJSON, headers);
+
+        ResponseEntity<HashMap> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, HashMap.class);
+        HashMap topMap = response.getBody();
+        Map sg = (Map) topMap.get("suggest");
+
+        List<Map<String, Object>> gList = (List<Map<String, Object>>) sg.get("github-suggest");
+        Map<String, Object> gS = gList.get(0);
+        List<Map<String, Object>> suggestions = (List<Map<String, Object>>) gS.get("options");
+        suggestions.forEach(sugg -> {
+            String id = (String) sugg.get("_id");
+             
+            Map<String, Object> source = (Map<String, Object>) sugg.get("_source");
+            source.put("id", id);
+            results.add(GithubEntry.createEntry(source));
+            
+            
+        });
+        sList.setSuggestions(results);
+        return sList;
     }
 
 }
