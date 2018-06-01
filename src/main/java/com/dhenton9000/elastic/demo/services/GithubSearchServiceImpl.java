@@ -251,14 +251,22 @@ public class GithubSearchServiceImpl implements GithubSearchService {
                     + "' is not allowed, only " + allowedFields.toString()
                     + " are allowed");
         }
+        
+        Double interval = 200.0d;
+        Long minDocCount = 25l;
+        
+        if (allowedFields.get(0).equals(field)) {
+            interval = 400.0d;
+            minDocCount = 50l;
+        }
 
         MatchAllQueryBuilder query = QueryBuilders.matchAllQuery();
         sourceBuilder.query(query);
         HistogramAggregationBuilder agg
                 = AggregationBuilders.histogram(aggName)
                         .field(field)
-                        .interval(200.0d)
-                        .minDocCount(25);
+                        .interval(interval)
+                        .minDocCount(minDocCount);
         sourceBuilder.aggregation(agg);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         searchRequest.source(sourceBuilder);
