@@ -7,6 +7,9 @@ import com.dhenton9000.elastic.demo.model.SuggestionList;
 import static com.dhenton9000.elastic.demo.services.GithubSearchService.INDEX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -254,8 +257,8 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         HistogramAggregationBuilder agg
                 = AggregationBuilders.histogram(aggName)
                         .field(field)
-                        .interval(100.0d)
-                        .minDocCount(10);
+                        .interval(200.0d)
+                        .minDocCount(25);
         sourceBuilder.aggregation(agg);
         SearchRequest searchRequest = new SearchRequest(INDEX);
         searchRequest.source(sourceBuilder);
@@ -267,8 +270,15 @@ public class GithubSearchServiceImpl implements GithubSearchService {
                 ParsedHistogram dateData = res.getAggregations().get(aggName);
                 dateData.getBuckets().forEach(b -> {
                     Map<String, Object> d = new HashMap<>();
-                    d.put("count", b.getDocCount());
-                    d.put("interval", b.getKeyAsString());
+                    
+                    Double scaledCount = 
+                           roundDouble(Double.valueOf(b.getDocCount())/1000.0d);
+                    
+                    Double scaledInterval = Double.valueOf(b.getKeyAsString())/1000.0d;
+                    String intervalString = String.format("%3.2f", scaledInterval);
+                    
+                    d.put("count", scaledCount);
+                    d.put("interval", intervalString);
                     bucketData.add(d);
                 });
             }
@@ -279,6 +289,10 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
         return dataGram;
     }
+    
+    private   Double roundDouble(Double val) {
+    return new BigDecimal(val.toString()).setScale(2,RoundingMode.HALF_UP).doubleValue();
+}
 
     @Override
     public HistogramData getYearHistogram(String year) {
