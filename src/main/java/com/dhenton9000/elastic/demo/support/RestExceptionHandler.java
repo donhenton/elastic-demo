@@ -34,9 +34,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     private final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
     
-    
-    
-    
     /**
      * Handle MissingServletRequestParameterException. Triggered when a 'required' request parameter is missing.
      *
@@ -189,6 +186,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
      * Handle Exception, handle generic Exception.class
      *
      * @param ex the Exception
+     * @param request
      * @return the ApiError object
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
