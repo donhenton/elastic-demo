@@ -31,6 +31,7 @@ public class GithubEntry {
         if (id != null) {
             g.setId(id.toString());
         }
+        
 
         return g;
     }
@@ -58,6 +59,7 @@ public class GithubEntry {
     private String language;
     private int watcherCount;
     private String id = null;
+    private String highlightText;
 
     /**
      * @return the name
@@ -255,6 +257,20 @@ public class GithubEntry {
      */
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * @return the highlightText
+     */
+    public String getHighlightText() {
+        return highlightText;
+    }
+
+    /**
+     * @param highlightText the highlightText to set
+     */
+    public void setHighlightText(String highlightText) {
+        this.highlightText = highlightText;
     }
 
 }

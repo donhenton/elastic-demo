@@ -106,4 +106,12 @@ public class GithubSearchController {
     }
     
     
+    @RequestMapping(method = RequestMethod.GET, path = "/description", produces = "application/json")
+    @ApiOperation(value = "Search Description", notes = "will search for the term as the start portion of any word in the description. Eg. conf returns Confluence Conference, Configuration")
+    GithubResultsPage searchDescription(@RequestParam String searchTerm, @RequestParam int pageOffset) {
+         return githubService.searchDescription(searchTerm,pageOffset);
+    }
+    
+    
+    
 }

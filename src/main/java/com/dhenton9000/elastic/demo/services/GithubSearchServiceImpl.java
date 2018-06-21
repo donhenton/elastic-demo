@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,12 +20,13 @@ import java.util.Map;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.PrefixQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.RegexpQueryBuilder;
 import org.elasticsearch.index.query.TermsQueryBuilder;
 
 import org.elasticsearch.search.SearchHit;
@@ -39,7 +39,8 @@ import org.elasticsearch.search.aggregations.bucket.histogram.ParsedDateHistogra
 import org.elasticsearch.search.aggregations.bucket.histogram.ParsedHistogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -251,10 +252,10 @@ public class GithubSearchServiceImpl implements GithubSearchService {
                     + "' is not allowed, only " + allowedFields.toString()
                     + " are allowed");
         }
-        
+
         Double interval = 200.0d;
         Long minDocCount = 25l;
-        
+
         if (allowedFields.get(0).equals(field)) {
             interval = 400.0d;
             minDocCount = 50l;
@@ -278,13 +279,13 @@ public class GithubSearchServiceImpl implements GithubSearchService {
                 ParsedHistogram dateData = res.getAggregations().get(aggName);
                 dateData.getBuckets().forEach(b -> {
                     Map<String, Object> d = new HashMap<>();
-                    
-                    Double scaledCount = 
-                           roundDouble(Double.valueOf(b.getDocCount())/1000.0d);
-                    
-                    Double scaledInterval = Double.valueOf(b.getKeyAsString())/1000.0d;
+
+                    Double scaledCount
+                            = roundDouble(Double.valueOf(b.getDocCount()) / 1000.0d);
+
+                    Double scaledInterval = Double.valueOf(b.getKeyAsString()) / 1000.0d;
                     String intervalString = String.format("%3.2f", scaledInterval);
-                    
+
                     d.put("count", scaledCount);
                     d.put("interval", intervalString);
                     bucketData.add(d);
@@ -297,10 +298,10 @@ public class GithubSearchServiceImpl implements GithubSearchService {
 
         return dataGram;
     }
-    
-    private   Double roundDouble(Double val) {
-    return new BigDecimal(val.toString()).setScale(2,RoundingMode.HALF_UP).doubleValue();
-}
+
+    private Double roundDouble(Double val) {
+        return new BigDecimal(val.toString()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    }
 
     @Override
     public HistogramData getYearHistogram(String year) {
@@ -411,15 +412,70 @@ public class GithubSearchServiceImpl implements GithubSearchService {
         List<Map<String, Object>> suggestions = (List<Map<String, Object>>) gS.get("options");
         suggestions.forEach(sugg -> {
             String id = (String) sugg.get("_id");
-             
+
             Map<String, Object> source = (Map<String, Object>) sugg.get("_source");
             source.put("id", id);
             results.add(GithubEntry.createEntry(source));
-            
-            
+
         });
         sList.setSuggestions(results);
         return sList;
+    }
+
+    @Override
+    public GithubResultsPage searchDescription(String searchTerm, int pageOffset) {
+        //https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high-search.html
+        List<GithubEntry> results = new ArrayList<>();
+        GithubResultsPage page = setupPage(results, pageOffset);
+        SearchSourceBuilder sourceBuilder = setupBuilder(pageOffset);
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        HighlightBuilder.Field highlighter
+                = new HighlightBuilder.Field("description");
+        highlighter.highlighterType("unified");
+        highlighter.preTags("<span class='show-highlight'>");
+        highlighter.postTags("</span>");
+        
+        highlightBuilder.field(highlighter);
+        sourceBuilder.highlighter(highlightBuilder);
+
+        RegexpQueryBuilder query = QueryBuilders.regexpQuery("description", searchTerm + ".*");
+
+        sourceBuilder.query(query);
+        SearchRequest searchRequest = new SearchRequest(INDEX);
+
+      //  LOG.debug(sourceBuilder.toString());
+        searchRequest.source(sourceBuilder);
+        //do the search
+        try {
+
+            SearchResponse res = this.client.search(searchRequest);
+            SearchHits searchHits = res.getHits();
+            page.setTotalCount(searchHits.getTotalHits());
+            Arrays.asList(searchHits.getHits()).forEach((SearchHit hit) -> {
+
+                GithubEntry g = GithubEntry.createEntry(hit.getSourceAsMap());
+                g.setId(hit.getId());
+               // LOG.info(hit.getHighlightFields().toString());
+                HighlightField hField = hit.getHighlightFields().get("description");
+                if (hField != null) {
+                    Text[] fragments = hField.getFragments();
+                    String accumText = "";
+                    for (Text t : fragments) {
+                        accumText = accumText + " " + t.toString();
+
+                    }
+                  g.setHighlightText(accumText);
+                }
+                
+                results.add(g);
+            });
+
+        } catch (IOException ex) {
+            LOG.error("io exception for search " + ex.getMessage());
+        }
+
+        return page;
+
     }
 
 }

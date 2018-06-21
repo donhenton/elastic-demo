@@ -29,5 +29,6 @@ public interface GithubSearchService {
     public HistogramData getDataHistogramForField(String field);
     public GithubResultsPage getEntriesByLanguage(String language,int pageOffset);
     public SuggestionList getSuggestionsOnDescription(String entryText);
+    public GithubResultsPage searchDescription(String searchTerm,int pageOffset);
     
 }
